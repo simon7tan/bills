@@ -1,0 +1,59 @@
+---
+title: "Bills"
+author: "Simon Tan"
+date: "2024-05-15"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+
+legislation_2018 <- read.csv("legislation_tracker_2018.csv")
+
+legislation_2019 <- read.csv("legislation_tracker_2019.csv")
+
+legislation_2020 <- read.csv("legislation-tracker_2020.csv")
+
+legislation_2021 <- read.csv("legislation-tracker_2021.csv")
+
+legislation_2022 <- read.csv("legislation-tracker_2022.csv")
+
+legislation_2023 <- read.csv("legislation-tracker_2023.csv")
+
+legislation_2024 <- read.csv("legislation-tracker_2024.csv")
+
+legislation_total <- bind_rows(legislation_2018, legislation_2019, legislation_2020, legislation_2021, legislation_2022, legislation_2023, legislation_2024)
+```
+
+```{r}
+duplicates <- legislation_total %>%
+  group_by(State, Bill) %>%
+  filter(n() > 1) %>%
+  ungroup() %>%
+  arrange(desc(State), Bill)
+
+legislation_declutter <- legislation_total[!duplicated(legislation_total[c("State", "Bill")]), ] %>%
+  arrange(State, Bill)
+
+state_abbreviations <- c(
+  "Alabama" = "AL", "Alaska" = "AK", "Arizona" = "AZ", "Arkansas" = "AR", "California" = "CA",
+  "Colorado" = "CO", "Connecticut" = "CT", "Delaware" = "DE", "Florida" = "FL", "Georgia" = "GA",
+  "Hawaii" = "HI", "Idaho" = "ID", "Illinois" = "IL", "Indiana" = "IN", "Iowa" = "IA",
+  "Kansas" = "KS", "Kentucky" = "KY", "Louisiana" = "LA", "Maine" = "ME", "Maryland" = "MD",
+  "Massachusetts" = "MA", "Michigan" = "MI", "Minnesota" = "MN", "Mississippi" = "MS", "Missouri" = "MO",
+  "Montana" = "MT", "Nebraska" = "NE", "Nevada" = "NV", "NewHampshire" = "NH", "NewJersey" = "NJ",
+  "NewMexico" = "NM", "NewYork" = "NY", "NorthCarolina" = "NC", "NorthDakota" = "ND", "Ohio" = "OH",
+  "Oklahoma" = "OK", "Oregon" = "OR", "Pennsylvania" = "PA", "RhodeIsland" = "RI", "SouthCarolina" = "SC",
+  "SouthDakota" = "SD", "Tennessee" = "TN", "Texas" = "TX", "Utah" = "UT", "Vermont" = "VT",
+  "Virginia" = "VA", "Washington" = "WA", "WestVirginia" = "WV", "Wisconsin" = "WI", "Wyoming" = "WY")
+
+legislation_declutter <- legislation_declutter %>%
+  mutate(State = gsub(" ", "", State)) %>%
+  mutate(State = recode(State, !!!state_abbreviations))
+  
+
+write.csv(legislation_declutter, "legislation_total_declutter.csv", row.names = FALSE)
+```
+
+
+
